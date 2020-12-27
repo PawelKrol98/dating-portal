@@ -1,44 +1,27 @@
 ﻿#include "datingPortal.hpp"
 
-uint64_t User::last_id{ 0 };
-
 User::User(std::string _name = "no_name", std::string _gender = "no", int _age = 18,
-	std::string _city = "no_city", std::vector<std::string> _hobby = {}, bool _likes_women = false, bool _likes_men= false)
+	std::string _city = "no_city", std::vector<std::string> _hobby = {}, orientation _preference = { 0, 0})
 {
 	name = _name;
 	gender = _gender;
 	age = _age;
 	city = _city;
 	hobby = _hobby;
-	id = ++last_id;
-	likes_women = _likes_women;
-	likes_men = _likes_men;
+	preference.likes_women = _preference.likes_women;
+	preference.likes_men = _preference.likes_men;
 }
 
-User::User(int _id, std::string _name, std::string _gender, int _age,
-	std::string _city, std::vector<std::string> _hobby, bool _likes_women, bool _likes_men)
-{
-	id = _id;
-	if (id > last_id) last_id = id;
-	name = _name;
-	gender = _gender;
-	age = _age;
-	city = _city;
-	hobby = _hobby;
-	likes_women = _likes_women;
-	likes_men = _likes_men;
-}
 
 std::string User::to_string(bool for_saving)
 {
 	if (for_saving)
 	{
 		std::string interested_in;
-		if (likes_women and likes_men) interested_in = "WM";
-		else if (likes_women) interested_in = "W";
-		else if (likes_men) interested_in = "M";
-		std::string str = std::to_string(id) + " " +
-			 name + " " + gender + " " + std::to_string(age) + " " + interested_in + " " + city + " " + "hobby ";
+		if (preference.likes_women and preference.likes_men) interested_in = "WM";
+		else if (preference.likes_women) interested_in = "W";
+		else if (preference.likes_men) interested_in = "M";
+		std::string str = name + " " + gender + " " + std::to_string(age) + " " + interested_in + " " + city + " " + "hobby ";
 		for (std::string i : hobby)
 		{
 			str += (i + " ");
@@ -55,21 +38,21 @@ std::string User::to_string(bool for_saving)
 		{
 			str += i + ", ";
 		}
-		str = str.substr(0, str.length() - 4);
+		str = str.substr(0, str.length() - 2);
 		return str;
 	}
 }
 
-uint64_t User::get_id()
-{
-	return id;
-}
+std::string User::get_gender(){ return gender;}
+std::string User::get_city() { return city; }
+std::vector<std::string> User::get_hobby() { return hobby; }
+int User::get_age() { return age; }
+orientation User::get_orientation(){ return preference; }
 
 List_of_users::List_of_users()
 {
 	users = {};
 }
-
 
 List_of_users::List_of_users(std::string _file_path)
 {
@@ -92,8 +75,7 @@ List_of_users::List_of_users(std::string _file_path)
 	std::string city;
 	std::vector<std::string> hobby;
 	std::string interested_in;
-	bool likes_men{false};
-	bool likes_women{false};
+	orientation preference {0,0};
 
 	for (std::string u : lines)
 	{
@@ -107,9 +89,9 @@ List_of_users::List_of_users(std::string _file_path)
 		age = std::stoi(u.substr(0, u.find(" ")));
 		u.erase(0, u.find(" ") + 1);
 		interested_in = u.substr(0, u.find(" "));
-		if (interested_in == "W") { likes_men = false; likes_women = true; }
-		else if (interested_in == "M") { likes_men = true; likes_women = false; }
-		else if (interested_in == "WM") { likes_men = true; likes_women = true; }
+		if (interested_in == "W") { preference.likes_men = false; preference.likes_women = true; }
+		else if (interested_in == "M") { preference.likes_men = true; preference.likes_women = false; }
+		else if (interested_in == "WM") { preference.likes_men = true; preference.likes_women = true; }
 		u.erase(0, u.find(" ") + 1);
 		city = u.substr(0, u.find(" "));
 		u.erase(0, u.find(" ") + 1);
@@ -119,8 +101,9 @@ List_of_users::List_of_users(std::string _file_path)
 			if (u.substr(0, u.find(" ")) != "hobby") hobby.push_back(u.substr(0, u.find(" ")));
 			u.erase(0, u.find(" ") + 1);
 		}
-		User usr(id, name, gender, age, city, hobby, likes_women, likes_men);
-		users.insert({usr.get_id(), usr});
+		User usr(name, gender, age, city, hobby, preference);
+		if (id > last_id) last_id = id;
+		users.insert({id, usr});
 	}
 	file.close();
 }
@@ -129,9 +112,10 @@ void List_of_users::show_users()
 {
 	for (auto u : users)
 	{
-		std::cout << u.second.to_string(0) << std::endl;
+		std::cout << "[" << u.first << "] " <<u.second.to_string(0) << std::endl;
 	}
 }
+
 
 void List_of_users::create_new_user()
 {
@@ -141,8 +125,7 @@ void List_of_users::create_new_user()
 	std::string city;
 	std::string str_hobby;
 	std::string interested_in;
-	bool likes_men{ false };
-	bool likes_women{ false };
+	orientation preference{0,0};
 	std::cout << "Please enter your name:" << std::endl;
 	std::cin >> name;
 	while (gender != "W" and gender != "M")
@@ -152,13 +135,20 @@ void List_of_users::create_new_user()
 	}
 	std::cout << "Please enter your age:" << std::endl;
 	std::cin >> str_age;
+	if (std::stoi(str_age) < 18)
+	{
+		std::cout << "You must be at least 18 years old to make a profile, type anything to exit" << std::endl;
+		std::string exit;
+		std::cin >> exit;
+		return;
+	}
 	while (interested_in != "W" and interested_in != "M" and interested_in != "WM")
 	{
 		std::cout << "Who are you looking for? [choose W (woman) or M (man) or WM (woman and man)]" << std::endl;
 		std::cin >> interested_in;
-		if (interested_in == "W") { likes_men = false; likes_women = true; }
-		else if (interested_in == "M") { likes_men = true; likes_women = false; }
-		else if (interested_in == "WM") { likes_men = true; likes_women = true; }
+		if (interested_in == "W") { preference.likes_men = false; preference.likes_women = true; }
+		else if (interested_in == "M") { preference.likes_men = true; preference.likes_women = false; }
+		else if (interested_in == "WM") { preference.likes_men = true; preference.likes_women = true; }
 
 	}
 	std::cout << "Please enter your city:" << std::endl;
@@ -178,13 +168,15 @@ void List_of_users::create_new_user()
 		hobby.push_back(str_hobby.substr(0, str_hobby.find(" ")));
 		str_hobby.erase(0, str_hobby.find(" ") + 1);
 	}
-	User usr(name, gender, std::stoi(str_age), city, hobby, likes_women, likes_men);
+	User usr(name, gender, std::stoi(str_age), city, hobby, preference);
 	std::ofstream file;
+	last_id++;
 	file.open(file_path, std::ios::app);      // ios::app to append file
-	file << usr.to_string(true) << std::endl;
+	file << last_id << " " <<usr.to_string(true) << std::endl;
 	file.close();
-	users.insert({ usr.get_id(), usr });
+	users.insert({ last_id, usr });
 }
+
 
 void List_of_users::delete_user(uint64_t user_id)
 {
@@ -192,11 +184,11 @@ void List_of_users::delete_user(uint64_t user_id)
 	std::ofstream new_file;
 	file.open(file_path);
 	new_file.open("temp.txt");
-	std::string user_to_delete = users[user_id].to_string(true);
+	std::string user_to_delete = std::to_string(user_id) + ' ' + users[user_id].to_string(true);
 	std::string line;
 	while (std::getline(file, line))
 	{
-		if (line + ' ' != user_to_delete)       // +' '     because line in txt is longer about one space
+		if (line + ' ' != user_to_delete)       // +' '     because line in txt is one space longer
 		{
 			new_file << line << std::endl;
 		}
@@ -207,3 +199,21 @@ void List_of_users::delete_user(uint64_t user_id)
 	std::rename("temp.txt", file_path.c_str());
 	users.erase(user_id);
 }
+
+List_of_users filter_for_user(List_of_users list, User usr)
+{
+	List_of_users new_list = List_of_users();
+	new_list.file_path = list.file_path;
+	new_list.last_id = list.last_id;
+	orientation user_preference = usr.get_orientation();
+	for (auto u : list.users)
+	{
+		std::string second_user_gender = u.second.get_gender();
+		if (user_preference.likes_women and second_user_gender == "W" or
+			user_preference.likes_men and second_user_gender == "M") 
+			new_list.users.insert({u.first, u.second});
+	}
+	return new_list;
+}
+
+User List_of_users::get_user(uint64_t user_id) { return users[user_id]; }
