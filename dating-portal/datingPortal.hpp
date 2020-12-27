@@ -6,12 +6,15 @@
 #include <fstream>
 #include <algorithm>
 
+namespace dating_portal
+{
+
 struct filter
 {
 	std::string by_city = "";
 	std::vector<std::string> by_hobby = {};
 	int min_age = 18;
-	int max_age = 1000;  
+	int max_age = 1000;
 };
 
 struct orientation
@@ -20,18 +23,21 @@ struct orientation
 	bool likes_men;
 };
 
-class User 
+class User
 {
 	friend class List_of_users;
 public:
-	User(std::string, std::string, int, std::string, std::vector<std::string>, orientation);
+	User(std::string, std::string, int, std::string, std::vector<std::string>, orientation, std::string);
+	std::string get_name();
 	std::string to_string(bool);         // true for saving to file, false for reading in the application
 	std::string get_gender();
 	std::string get_city();
 	std::vector<std::string> get_hobby();
 	orientation get_orientation();
 	int get_age();
-	
+	std::string get_password();
+	bool compare_passwords(std::string);
+
 	~User() {};
 private:
 	int age;
@@ -39,13 +45,14 @@ private:
 	std::string name;
 	std::string gender;
 	std::string city;
+	std::string password;
 
 	orientation preference;
 };
 
 class List_of_users
 {
-	friend List_of_users filter_for_user(List_of_users, User);
+	friend List_of_users filter_for_user(const List_of_users, User);
 	friend List_of_users filter_list(const List_of_users, filter);
 public:
 	List_of_users();           // creates empty list
@@ -57,8 +64,23 @@ public:
 	std::vector<uint64_t> get_ids();
 	~List_of_users() {};
 private:
-	std::map<uint64_t, User> users;         
+	std::map<uint64_t, User> users;
+	std::map<uint64_t, std::string> passwords;
 	std::string file_path;
 	uint64_t last_id;
 };
 
+class Menu
+{
+private:
+	int num;
+	std::string choice;
+	List_of_users main_list;
+public:
+	Menu(List_of_users&);
+	void main_menu();
+	void user_menu(List_of_users, const uint64_t);
+	void filtered_menu(List_of_users);
+};
+
+}

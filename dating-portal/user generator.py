@@ -1,4 +1,5 @@
 import random
+import string
 
 male_names = ["Andrzej", "Bartek", "Cezary" ,"Dawid", "Pawel", "Daniel", "Jakub", "Maciek", "Piotr", "Filip", "Rafal",
               "Krzysiek", "Jan", "Jacek", "Julian", "Damian", "Oskar", "Kacper", "Konrad", "Kornel", "Arek", "Darek",
@@ -12,8 +13,11 @@ hobbies = ["sport", "filmy", "gry", "jezyki", "moda", "pilka", "koszykowka", "bi
            "polityka", "historia", "it", "gitara", "spacery", "zwierzeta", "spiewanie", "gotowanie", "makijaz", "taniec"]
 genders = ["W", "M"]
 
-file =open("users.txt", "a")
+letters = string.ascii_lowercase
+
+file =open("users.txt", "w")
 for i in range(1, 10000):
+    password = ''.join(random.choice(letters) for i in range(5))
     gender = random.choice(genders)
     if gender == "W":
         name = random.choice(female_names)
@@ -34,6 +38,7 @@ for i in range(1, 10000):
     hobby = ""
     for h in listOf_hobbies:
         hobby += (h + " ")
-    user = str(i) + " " + name + " " + gender + " " + str(age) + " " + orientation + " " + city + " hobby " + hobby + "\n"
+    user = str(i) + " " + password + " " +name + " " + gender + " " + str(age) + " " + orientation + " " + city + " hobby " + hobby + "\n"
     file.write(user)
+
 file.close()

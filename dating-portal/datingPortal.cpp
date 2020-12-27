@@ -1,7 +1,9 @@
 ﻿#include "datingPortal.hpp"
 
+using namespace dating_portal;
+
 User::User(std::string _name = "no_name", std::string _gender = "no", int _age = 18,
-	std::string _city = "no_city", std::vector<std::string> _hobby = {}, orientation _preference = { 0, 0})
+	std::string _city = "no_city", std::vector<std::string> _hobby = {}, orientation _preference = { 0, 0}, std::string _password = "no")
 {
 	name = _name;
 	gender = _gender;
@@ -10,6 +12,7 @@ User::User(std::string _name = "no_name", std::string _gender = "no", int _age =
 	hobby = _hobby;
 	preference.likes_women = _preference.likes_women;
 	preference.likes_men = _preference.likes_men;
+	password = _password;
 }
 
 
@@ -43,11 +46,14 @@ std::string User::to_string(bool for_saving)
 	}
 }
 
+std::string User::get_name() { return name; }
 std::string User::get_gender(){ return gender;}
 std::string User::get_city() { return city; }
 std::vector<std::string> User::get_hobby() { return hobby; }
 int User::get_age() { return age; }
 orientation User::get_orientation(){ return preference; }
+bool User::compare_passwords(std::string provided_password) { return provided_password == password; }
+std::string User::get_password() { return password; }
 
 List_of_users::List_of_users()
 {
@@ -76,11 +82,14 @@ List_of_users::List_of_users(std::string _file_path)
 	std::vector<std::string> hobby;
 	std::string interested_in;
 	orientation preference {0,0};
+	std::string password;
 
 	for (std::string u : lines)
 	{
 		hobby = {};
 		id = std::stoi(u.substr(0, u.find(" ")));
+		u.erase(0, u.find(" ") + 1);
+		password = u.substr(0, u.find(" "));
 		u.erase(0, u.find(" ") + 1);
 		name = u.substr(0, u.find(" "));
 		u.erase(0, u.find(" ") + 1);
@@ -101,7 +110,7 @@ List_of_users::List_of_users(std::string _file_path)
 			if (u.substr(0, u.find(" ")) != "hobby") hobby.push_back(u.substr(0, u.find(" ")));
 			u.erase(0, u.find(" ") + 1);
 		}
-		User usr(name, gender, age, city, hobby, preference);
+		User usr(name, gender, age, city, hobby, preference, password);
 		if (id > last_id) last_id = id;
 		users.insert({id, usr});
 	}
@@ -110,7 +119,7 @@ List_of_users::List_of_users(std::string _file_path)
 
 void List_of_users::show_users()
 {
-	int counter{ 0 };
+	uint64_t counter{ 0 };
 	for (auto u : users)
 	{
 		counter++;
@@ -129,8 +138,11 @@ void List_of_users::create_new_user()
 	std::string str_hobby;
 	std::string interested_in;
 	orientation preference{0,0};
+	std::string password;
 	std::cout << "Please enter your name:" << std::endl;
 	std::cin >> name;
+	std::cout << "Please enter your passwords (no spaces):" << std::endl;
+	std::cin >> password;
 	while (gender != "W" and gender != "M")
 	{
 		std::cout << "Please choose your gender [choose W (woman) or M (man)]:" << std::endl;
@@ -164,20 +176,20 @@ void List_of_users::create_new_user()
 			c = ::tolower(c);               // changing to lowercase to make filtering easier
 		});
 	std::vector<std::string> hobby{};
-	std::cout << str_hobby << std::endl;
 	str_hobby += " ";
 	while (str_hobby.find(" ") != std::string::npos)
 	{
 		hobby.push_back(str_hobby.substr(0, str_hobby.find(" ")));
 		str_hobby.erase(0, str_hobby.find(" ") + 1);
 	}
-	User usr(name, gender, std::stoi(str_age), city, hobby, preference);
+	User usr(name, gender, std::stoi(str_age), city, hobby, preference, password);
 	std::ofstream file;
 	last_id++;
 	file.open(file_path, std::ios::app);      // ios::app to append file
-	file << last_id << " " <<usr.to_string(true) << std::endl;
+	file << last_id << " " << password <<" " <<usr.to_string(true) << std::endl;
 	file.close();
 	users.insert({ last_id, usr });
+	std::cout << "Your ID is " << last_id << std::endl;
 }
 
 
@@ -187,7 +199,7 @@ void List_of_users::delete_user(uint64_t user_id)
 	std::ofstream new_file;
 	file.open(file_path);
 	new_file.open("temp.txt");
-	std::string user_to_delete = std::to_string(user_id) + ' ' + users[user_id].to_string(true);
+	std::string user_to_delete = std::to_string(user_id) + ' ' + users[user_id].get_password() + ' ' + users[user_id].to_string(true);
 	std::string line;
 	while (std::getline(file, line))
 	{
@@ -203,7 +215,7 @@ void List_of_users::delete_user(uint64_t user_id)
 	users.erase(user_id);
 }
 
-List_of_users filter_for_user(List_of_users list, User usr)
+List_of_users dating_portal::filter_for_user(const List_of_users list, User usr)
 {
 	List_of_users new_list = List_of_users();
 	new_list.file_path = list.file_path;
@@ -233,7 +245,7 @@ std::vector <uint64_t> List_of_users::get_ids()
 	return ids_of_users;
 }
 
-List_of_users filter_list(const List_of_users list, filter my_filter)
+List_of_users dating_portal::filter_list(const List_of_users list, filter my_filter)
 {
 	List_of_users new_list = list;
 	if (my_filter.by_city != "")
@@ -271,3 +283,165 @@ List_of_users filter_list(const List_of_users list, filter my_filter)
 }
 
 User List_of_users::get_user(uint64_t user_id) { return users[user_id]; }
+
+Menu::Menu(List_of_users& _main_list)
+{
+	main_list = _main_list;
+}
+
+void Menu::main_menu()
+{
+    while (true)
+    {
+		std::system("CLS");
+		std::cout << "Welcome to the dating portal, find your love today!" << std::endl;
+        std::cout << "[1] log in" << std::endl;
+        std::cout << "[2] create an account" << std::endl;
+        std::cout << "[3] exit" << std::endl;
+        std::cin >> num;
+        switch (num)
+        {
+		case 1: 
+		{
+			std::system("CLS");
+			std::string str_id;
+			std::string password;
+			std::cout << "Please enter your ID " << std::endl;
+			std::cin >> str_id;
+			std::cout << "Please enter your password" << std::endl;
+			std::cin >> password;
+			if (main_list.get_user(std::stoi(str_id)).compare_passwords(password)) { user_menu(filter_for_user(main_list, main_list.get_user(std::stoi(str_id))), std::stoi(str_id)); }
+			else {
+				std::cout << "Incorrect password (type 'ok' to go back to main menu)" << std::endl;
+				std::cin >> choice;
+			}
+			break; 
+		}
+        case 2:
+            std::system("CLS");
+            main_list.create_new_user();
+			std::cout << "Accout successfully created! You can sign in with your ID and password (type 'ok' to go back to main menu)" << std::endl;
+			std::cin >> choice;
+            break;
+        case 3:
+            return;
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void Menu::user_menu(List_of_users user_list, const uint64_t user_id)
+{
+	while (true)
+	{
+		std::system("CLS");
+		std::cout << "Hello " << main_list.get_user(user_id).get_name() << ", how is your day?" <<std::endl;
+		std::cout << "[1] search for partners" << std::endl;
+		std::cout << "[2] delete an account" << std::endl;
+		std::cout << "[3] logout" << std::endl;
+		std::cin >> num;
+		switch (num)
+		{
+		case 1:
+			filtered_menu(user_list);
+			break;
+		case 2:
+			std::system("CLS");
+			std::cout << "Please enter your password to delete the account" << std::endl;
+			std::cin >> choice;
+			if (main_list.get_user(user_id).compare_passwords(choice))
+			{
+				main_list.delete_user(user_id);
+				return;
+			}
+			else
+			{
+				std::cout << "Incorrect password (type 'ok' to contunue)" << std::endl;
+				std::cin >> choice;
+				break;
+			}
+		case 3:
+			return;
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void Menu::filtered_menu(List_of_users user_list)
+{
+	filter my_filter;
+	while (true)
+	{
+		std::system("CLS");
+		std::cout << "Choosed filters: " << std::endl;
+		std::cout << "[1] show list of candidates" << std::endl;
+		std::cout << "[2] add filter" << std::endl;
+		std::cout << "[3] delete filters" << std::endl;
+		std::cout << "[4] exit" << std::endl;
+		std::cin >> num;
+		switch (num)
+		{
+		case 1:
+			std::system("CLS");
+			filter_list(user_list, my_filter).show_users();
+			std::cout << "type 'ok' to come back" << std::endl;
+			std::cin >> choice;
+			break;
+		case 2:
+			std::cout << "What filter do you want to use?" << std::endl;
+			std::cout << "[1] city" << std::endl;
+			std::cout << "[2] hobbies" << std::endl;
+			std::cout << "[3] minimum age" << std::endl;
+			std::cout << "[4] maximum age" << std::endl;
+			std::cout << "[5] exit" << std::endl;
+			int num2;
+			std::cin >> num2;
+			switch (num2)
+			{
+			case 1:
+				std::cout << "Provide city from were candidate should be:" << std::endl;
+				std::cin >> my_filter.by_city;
+				break;
+			case 2:
+			{
+				std::cout << "Provide hobbies candidate should have, seperate by space(program will choose candidate with at least one):" << std::endl;
+				std::string str_hobby;
+				std::cin.ignore(std::numeric_limits < std::streamsize >::max(), '\n');
+				std::getline(std::cin, str_hobby);
+				str_hobby += " ";
+				while (str_hobby.find(" ") != std::string::npos)
+				{
+					my_filter.by_hobby.push_back(str_hobby.substr(0, str_hobby.find(" ")));
+					str_hobby.erase(0, str_hobby.find(" ") + 1);
+				}
+				break;
+			}
+			case 3:
+				std::cout << "Provide minimum age of candidate:" << std::endl;
+				std::cin >> my_filter.min_age;
+				break;
+			case 4:
+				std::cout << "Provide maximum age of candidate" << std::endl;
+				std::cin >> my_filter.max_age;
+				break;
+			case 5:
+				break;
+			default:
+				break;
+			}
+			break;
+		case 3:
+			my_filter = { "", {}, 18, 1000 };
+			break;
+		case 4:
+			return;
+		default:
+			break;
+		}
+	}
+}
+
