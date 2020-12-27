@@ -6,6 +6,14 @@
 #include <fstream>
 #include <algorithm>
 
+struct filter
+{
+	std::string by_city = "";
+	std::vector<std::string> by_hobby = {};
+	int min_age = 18;
+	int max_age = 1000;  
+};
+
 struct orientation
 {
 	bool likes_women;
@@ -38,6 +46,7 @@ private:
 class List_of_users
 {
 	friend List_of_users filter_for_user(List_of_users, User);
+	friend List_of_users filter_list(const List_of_users, filter);
 public:
 	List_of_users();           // creates empty list
 	List_of_users(std::string);  // creates list from txt
@@ -45,6 +54,7 @@ public:
 	void create_new_user();
 	void delete_user(uint64_t);
 	User get_user(uint64_t);
+	std::vector<uint64_t> get_ids();
 	~List_of_users() {};
 private:
 	std::map<uint64_t, User> users;         

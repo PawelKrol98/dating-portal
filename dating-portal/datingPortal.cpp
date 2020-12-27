@@ -110,10 +110,13 @@ List_of_users::List_of_users(std::string _file_path)
 
 void List_of_users::show_users()
 {
+	int counter{ 0 };
 	for (auto u : users)
 	{
+		counter++;
 		std::cout << "[" << u.first << "] " <<u.second.to_string(0) << std::endl;
 	}
+	std::cout << "Found " << counter << "results.." << std::endl;
 }
 
 
@@ -206,12 +209,63 @@ List_of_users filter_for_user(List_of_users list, User usr)
 	new_list.file_path = list.file_path;
 	new_list.last_id = list.last_id;
 	orientation user_preference = usr.get_orientation();
+	std::string user_gender = usr.get_gender();
 	for (auto u : list.users)
 	{
 		std::string second_user_gender = u.second.get_gender();
-		if (user_preference.likes_women and second_user_gender == "W" or
-			user_preference.likes_men and second_user_gender == "M") 
+		orientation second_user_preference = u.second.get_orientation();
+		if (user_preference.likes_women and second_user_gender == "W"  and user_gender == "M" and second_user_preference.likes_men or
+			user_preference.likes_men and second_user_gender == "M" and user_gender == "W" and second_user_preference.likes_women or 
+			user_preference.likes_men and second_user_gender == "M" and user_gender == "M" and second_user_preference.likes_men or 
+			user_preference.likes_women and second_user_gender == "W" and user_gender == "W" and second_user_preference.likes_women)
 			new_list.users.insert({u.first, u.second});
+	}
+	return new_list;
+}
+
+std::vector <uint64_t> List_of_users::get_ids()
+{
+	std::vector <uint64_t> ids_of_users = {};
+	for (auto i : users)
+	{
+		ids_of_users.push_back(i.first);
+	}
+	return ids_of_users;
+}
+
+List_of_users filter_list(const List_of_users list, filter my_filter)
+{
+	List_of_users new_list = list;
+	if (my_filter.by_city != "")
+	{
+		for (uint64_t i : new_list.get_ids())
+		{
+			if (new_list.users[i].get_city() != my_filter.by_city) new_list.users.erase(i);
+		}
+	}
+	if (!my_filter.by_hobby.empty())
+	{
+		bool hobby_flag;
+		for (uint64_t i : new_list.get_ids())
+		{
+			hobby_flag = false;
+			for (std::string h : my_filter.by_hobby)
+			{
+				for (auto g : new_list.users[i].get_hobby())
+				{
+					if (g == h) {
+						hobby_flag = true;
+						break;
+					}
+				}
+				if (hobby_flag) break;
+			}
+			if (!hobby_flag) new_list.users.erase(i);
+		}
+	}
+	for (uint64_t i : new_list.get_ids())
+	{
+		if (new_list.users[i].get_age() > my_filter.max_age or new_list.users[i].get_age() < my_filter.min_age) new_list.users.erase(i);
 	}
 	return new_list;
 }

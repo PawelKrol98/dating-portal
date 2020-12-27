@@ -9,11 +9,11 @@ female_names = ["Agata", "Dominika", "Gabriela","Julia", "Natalia", "Agnieszka",
 cities = ["Warszawa", "Krakow", "Wroclaw", "Gdansk", "Skoczow", "Bielsko", "Cieszyn", "Katowice", "Gdansk", "Sopot",
           "Bialystok", "Szczecin", "Rzeszow", "Przemysl", "Opole", "Poznan", "Lodz", "Bydgoszcz", "Lublin"]
 hobbies = ["sport", "filmy", "gry", "jezyki", "moda", "pilka", "koszykowka", "bieganie", "czytanie", "ksiazki", "muzyka",
-           "polityka", "historia", "IT", "gitara", "spacery", "zwierzeta", "spiewanie", "gotowanie", "makijaz", "taniec"]
+           "polityka", "historia", "it", "gitara", "spacery", "zwierzeta", "spiewanie", "gotowanie", "makijaz", "taniec"]
 genders = ["W", "M"]
 
 file =open("users.txt", "a")
-for i in range(1, 500):
+for i in range(1, 10000):
     gender = random.choice(genders)
     if gender == "W":
         name = random.choice(female_names)
