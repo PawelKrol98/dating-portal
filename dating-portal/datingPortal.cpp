@@ -248,11 +248,21 @@ std::vector <uint64_t> List_of_users::get_ids()
 List_of_users dating_portal::filter_list(const List_of_users list, filter my_filter)
 {
 	List_of_users new_list = list;
-	if (my_filter.by_city != "")
+	if (!my_filter.by_cities.empty())
 	{
+		bool city_flag;
 		for (uint64_t i : new_list.get_ids())
 		{
-			if (new_list.users[i].get_city() != my_filter.by_city) new_list.users.erase(i);
+			city_flag = false;
+			for (std::string h : my_filter.by_cities)
+			{
+				if (new_list.users[i].get_city() == h) {
+					city_flag = true;
+					break;
+				}
+				if (city_flag) break;
+			}
+			if (!city_flag) new_list.users.erase(i);
 		}
 	}
 	if (!my_filter.by_hobby.empty())
@@ -377,7 +387,17 @@ void Menu::filtered_menu(List_of_users user_list)
 	while (true)
 	{
 		std::system("CLS");
-		std::cout << "Choosed filters: " << std::endl;
+		std::string print_hobby = "";
+		std::string print_cities = "";
+		for (auto s : my_filter.by_hobby)
+		{
+			print_hobby += s + ' ';
+		}
+		for (auto s : my_filter.by_cities)
+		{
+			print_cities += s + ' ';
+		}
+		std::cout << "Choosed filters: " << " hobbies: " << print_hobby << " cities: " << print_cities << " minimal age: " << my_filter.min_age << " minimal age: " << my_filter.max_age <<std::endl;
 		std::cout << "[1] show list of candidates" << std::endl;
 		std::cout << "[2] add filter" << std::endl;
 		std::cout << "[3] delete filters" << std::endl;
@@ -403,13 +423,23 @@ void Menu::filtered_menu(List_of_users user_list)
 			switch (num2)
 			{
 			case 1:
-				std::cout << "Provide city from were candidate should be:" << std::endl;
-				std::cin >> my_filter.by_city;
+			{
+				std::string str_cities;
+				std::cout << "Provide city or cities from were candidate should be, seperate by space:" << std::endl;
+				std::cin.ignore(std::numeric_limits < std::streamsize >::max(), '\n');
+				std::getline(std::cin, str_cities);
+				str_cities += " ";
+				while (str_cities.find(" ") != std::string::npos)
+				{
+					my_filter.by_cities.push_back(str_cities.substr(0, str_cities.find(" ")));
+					str_cities.erase(0, str_cities.find(" ") + 1);
+				}
 				break;
+			}
 			case 2:
 			{
-				std::cout << "Provide hobbies candidate should have, seperate by space(program will choose candidate with at least one):" << std::endl;
 				std::string str_hobby;
+				std::cout << "Provide hobbies candidate should have, seperate by space(program will choose candidate with at least one):" << std::endl;
 				std::cin.ignore(std::numeric_limits < std::streamsize >::max(), '\n');
 				std::getline(std::cin, str_hobby);
 				str_hobby += " ";
@@ -435,7 +465,7 @@ void Menu::filtered_menu(List_of_users user_list)
 			}
 			break;
 		case 3:
-			my_filter = { "", {}, 18, 1000 };
+			my_filter = { {}, {}, 18, 1000 };
 			break;
 		case 4:
 			return;

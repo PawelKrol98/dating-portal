@@ -11,7 +11,7 @@ namespace dating_portal
 
 struct filter
 {
-	std::string by_city = "";
+	std::vector<std::string>  by_cities = {};
 	std::vector<std::string> by_hobby = {};
 	int min_age = 18;
 	int max_age = 1000;
@@ -25,7 +25,6 @@ struct orientation
 
 class User
 {
-	friend class List_of_users;
 public:
 	User(std::string, std::string, int, std::string, std::vector<std::string>, orientation, std::string);
 	std::string get_name();
