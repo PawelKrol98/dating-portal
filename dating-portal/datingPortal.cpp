@@ -339,9 +339,8 @@ void Menu::user_menu(List_of_users user_list, const uint64_t user_id)
 		std::system("CLS");
 		std::cout << "Hello " << main_list.get_user(user_id).get_name() << ", how is your day?" <<std::endl;
 		std::cout << "[1] search for partners" << std::endl;
-		std::cout << "[2] search for partners" << std::endl;
-		std::cout << "[3] delete an account" << std::endl;
-		std::cout << "[4] logout" << std::endl;
+		std::cout << "[2] delete an account" << std::endl;
+		std::cout << "[3] logout" << std::endl;
 		std::cin >> num;
 		switch (num)
 		{
@@ -349,8 +348,6 @@ void Menu::user_menu(List_of_users user_list, const uint64_t user_id)
 			filtered_menu(user_list);
 			break;
 		case 2:
-			break;
-		case 3:
 			std::system("CLS");
 			std::cout << "Please enter your password to delete the account" << std::endl;
 			std::cin >> choice;
@@ -365,7 +362,7 @@ void Menu::user_menu(List_of_users user_list, const uint64_t user_id)
 				std::cin >> choice;
 				break;
 			}
-		case 4:
+		case 3:
 			return;
 			break;
 		default:

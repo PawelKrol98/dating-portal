@@ -25,6 +25,7 @@ struct orientation
 
 class User
 {
+	friend class List_of_users;
 public:
 	User(std::string, std::string, int, std::string, std::vector<std::string>, orientation, std::string);
 	std::string get_name();
@@ -64,6 +65,7 @@ public:
 	~List_of_users() {};
 private:
 	std::map<uint64_t, User> users;
+	std::map<uint64_t, std::string> passwords;
 	std::string file_path;
 	uint64_t last_id;
 };
@@ -80,6 +82,5 @@ public:
 	void user_menu(List_of_users, const uint64_t);
 	void filtered_menu(List_of_users);
 };
-
 
 }
