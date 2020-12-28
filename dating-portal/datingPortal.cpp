@@ -55,6 +55,8 @@ orientation User::get_orientation(){ return preference; }
 bool User::compare_passwords(std::string provided_password) { return provided_password == password; }
 std::string User::get_password() { return password; }
 
+
+
 List_of_users::List_of_users()
 {
 	users = {};
@@ -111,9 +113,15 @@ List_of_users::List_of_users(std::string _file_path)
 			u.erase(0, u.find(" ") + 1);
 		}
 		User usr(name, gender, age, city, hobby, preference, password);
-		if (id > last_id) last_id = id;
+		if (id > last_id) {
+			last_id = id;
+		}
 		users.insert({id, usr});
 	}
+	std::ofstream file2;
+	file2.open("last_id.txt");
+	file2 << std::to_string(last_id);
+	file2.close();
 	file.close();
 }
 
@@ -185,9 +193,13 @@ void List_of_users::create_new_user()
 	User usr(name, gender, std::stoi(str_age), city, hobby, preference, password);
 	std::ofstream file;
 	last_id++;
-	file.open(file_path, std::ios::app);      // ios::app to append file
-	file << last_id << " " << password <<" " <<usr.to_string(true) << std::endl;
+	file.open("last_id.txt");
+	file << std::to_string(last_id);
 	file.close();
+	std::ofstream file2;
+	file2.open(file_path, std::ios::app);      // ios::app to append file
+	file2 << last_id << " " << password <<" " <<usr.to_string(true) << std::endl;
+	file2.close();
 	users.insert({ last_id, usr });
 	std::cout << "Your ID is " << last_id << std::endl;
 }
@@ -292,7 +304,70 @@ List_of_users dating_portal::filter_list(const List_of_users list, filter my_fil
 	return new_list;
 }
 
-User List_of_users::get_user(uint64_t user_id) { return users[user_id]; }
+User& List_of_users::get_user(uint64_t user_id) { return users[user_id]; }
+
+void List_of_users::send_messages(List_of_users main_list, uint64_t sender_id, uint64_t receiver_id)
+{
+	std::system("CLS");
+	User sender = main_list.get_user(sender_id);
+	User receiver = main_list.get_user(receiver_id);
+	std::string sender_file_path = "chats/" + std::to_string(sender_id) + "_" + std::to_string(receiver_id) + "_.txt";
+	std::string receiver_file_path = "chats/" + std::to_string(receiver_id) + "_" + std::to_string(sender_id) + "_.txt";
+	std::ifstream sender_file;
+	sender_file.open(sender_file_path);
+	std::string line;
+	while (std::getline(sender_file, line))
+	{
+		std::cout << line << std::endl;
+	}
+	sender_file.close();
+	std::ofstream sender_file2;
+	std::ofstream receiver_file;
+	sender_file2.open(sender_file_path, std::ios::app);
+	receiver_file.open(receiver_file_path, std::ios::app);
+	std::string message;
+	time_t t;   // get time now
+	struct tm* now;
+	bool is_friend = false;
+	sender_file.open("friends/" + std::to_string(sender_id) + ".txt");
+	while (std::getline(sender_file, line))
+	{
+		if (std::stoi(line) == receiver_id) is_friend = true;
+	}
+	sender_file.close();
+	if (!is_friend)
+	{
+		std::ofstream sendfr;
+		std::ofstream recvfr;
+		sendfr.open("friends/" + std::to_string(sender_id) + ".txt", std::ios::app);
+		recvfr.open("friends/" + std::to_string(receiver_id) + ".txt", std::ios::app);
+		sendfr << std::to_string(receiver_id) + "\n";
+		recvfr << std::to_string(sender_id) + "\n";
+		sendfr.close();
+		recvfr.close();
+	}
+	std::cin.ignore(std::numeric_limits < std::streamsize >::max(), '\n');
+	while (true) 
+	{
+		std::cout << "Type message and press enter, or type exit() to leave chat:" << std::endl;
+		std::getline(std::cin, message);
+		if ( message == "exit()" ) break;
+		t = time(0);
+		now = localtime(&t);
+		message = std::to_string(now->tm_year + 1900) + '-' + std::to_string(now->tm_mon + 1) + '-' +
+			std::to_string(now->tm_mday) + " " + std::to_string(now->tm_hour) + ":" +
+			std::to_string(now->tm_min) + " " + message + "\n";
+		sender_file2 << "[you]" + message;
+		receiver_file << "[" + sender.get_name() + "]" + message;
+	}
+	sender_file.close();
+	receiver_file.close();
+}
+
+void List_of_users::set_last_id(uint64_t _last_id)
+{
+	last_id = _last_id;
+}
 
 Menu::Menu(List_of_users& _main_list)
 {
@@ -349,15 +424,36 @@ void Menu::user_menu(List_of_users user_list, const uint64_t user_id)
 		std::system("CLS");
 		std::cout << "Hello " << main_list.get_user(user_id).get_name() << ", how is your day?" <<std::endl;
 		std::cout << "[1] search for partners" << std::endl;
-		std::cout << "[2] delete an account" << std::endl;
-		std::cout << "[3] logout" << std::endl;
+		std::cout << "[2] show chats" << std::endl;
+		std::cout << "[3] delete an account" << std::endl;
+		std::cout << "[4] logout" << std::endl;
 		std::cin >> num;
 		switch (num)
 		{
 		case 1:
-			filtered_menu(user_list);
+			filtered_menu(user_list, user_id);
 			break;
 		case 2:
+		{
+			std::system("CLS");
+			std::vector<uint64_t> options;
+			std::ifstream file;
+			file.open("friends/" + std::to_string(user_id) + ".txt");
+			std::string line;
+			int id;
+			while (std::getline(file, line))
+			{
+				id = std::stoi(line);
+				std::cout << "[" << line << "]" << " " << main_list.get_user(id).get_name() << std::endl;
+			}
+			std::cout << "choose id to send message to ,type 'ok' to come back" << std::endl;
+			std::cin >> choice;
+			if (choice == "ok") break;
+			user_list.send_messages(main_list, user_id, std::stoi(choice));
+			file.close();
+		}
+			break;
+		case 3:
 			std::system("CLS");
 			std::cout << "Please enter your password to delete the account" << std::endl;
 			std::cin >> choice;
@@ -372,7 +468,7 @@ void Menu::user_menu(List_of_users user_list, const uint64_t user_id)
 				std::cin >> choice;
 				break;
 			}
-		case 3:
+		case 4:
 			return;
 			break;
 		default:
@@ -381,7 +477,7 @@ void Menu::user_menu(List_of_users user_list, const uint64_t user_id)
 	}
 }
 
-void Menu::filtered_menu(List_of_users user_list)
+void Menu::filtered_menu(List_of_users user_list, const uint64_t user_id)
 {
 	filter my_filter;
 	while (true)
@@ -397,7 +493,8 @@ void Menu::filtered_menu(List_of_users user_list)
 		{
 			print_cities += s + ' ';
 		}
-		std::cout << "Choosed filters: " << " hobbies: " << print_hobby << " cities: " << print_cities << " minimal age: " << my_filter.min_age << " minimal age: " << my_filter.max_age <<std::endl;
+		std::cout << "Choosed filters: " << " hobbies: [" << print_hobby << "] cities: [" << print_cities
+			<< "] minimal age: [" << my_filter.min_age << "] minimal age: [" << my_filter.max_age << "]" << std::endl;
 		std::cout << "[1] show list of candidates" << std::endl;
 		std::cout << "[2] add filter" << std::endl;
 		std::cout << "[3] delete filters" << std::endl;
@@ -408,8 +505,10 @@ void Menu::filtered_menu(List_of_users user_list)
 		case 1:
 			std::system("CLS");
 			filter_list(user_list, my_filter).show_users();
-			std::cout << "type 'ok' to come back" << std::endl;
+			std::cout << "choose id to send message to ,type 'ok' to come back" << std::endl;
 			std::cin >> choice;
+			if (choice == "ok") break;
+			user_list.send_messages(main_list, user_id, std::stoi(choice));
 			break;
 		case 2:
 			std::cout << "What filter do you want to use?" << std::endl;

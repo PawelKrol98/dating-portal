@@ -5,6 +5,8 @@
 #include <map>
 #include <fstream>
 #include <algorithm>
+#pragma warning(disable : 4996)
+#include <ctime>
 
 namespace dating_portal
 {
@@ -37,6 +39,7 @@ public:
 	std::string get_password();
 	bool compare_passwords(std::string);
 
+
 	~User() {};
 private:
 	int age;
@@ -59,8 +62,10 @@ public:
 	void show_users();
 	void create_new_user();
 	void delete_user(uint64_t);
-	User get_user(uint64_t);
+	User& get_user(uint64_t);
 	std::vector<uint64_t> get_ids();
+	void send_messages(List_of_users ,uint64_t, uint64_t);
+	void set_last_id(uint64_t);
 	~List_of_users() {};
 private:
 	std::map<uint64_t, User> users;
@@ -79,7 +84,7 @@ public:
 	Menu(List_of_users&);
 	void main_menu();
 	void user_menu(List_of_users, const uint64_t);
-	void filtered_menu(List_of_users);
+	void filtered_menu(List_of_users, const uint64_t);
 };
 
 }
