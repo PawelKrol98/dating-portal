@@ -326,7 +326,7 @@ void List_of_users::send_messages(List_of_users main_list, uint64_t sender_id, u
 	sender_file2.open(sender_file_path, std::ios::app);
 	receiver_file.open(receiver_file_path, std::ios::app);
 	std::string message;
-	time_t t;   // get time now
+	time_t t;   // zdobądź obecny czas
 	struct tm* now;
 	bool is_friend = false;
 	sender_file.open("friends/" + std::to_string(sender_id) + ".txt");

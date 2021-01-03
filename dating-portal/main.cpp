@@ -4,9 +4,9 @@
 
 int main()
 {
-    dating_portal::List_of_users main_list("users.txt");
+    dating_portal::List_of_users main_list("users.txt");          // zainicjowanie listy u¿ytkowników z pliku users.txt
     std::ifstream file;
-    file.open("last_id.txt");
+    file.open("last_id.txt");                                    // zapisanie najwy¿szego id
     if (file.good())
     {
         std::string last_id;
@@ -15,7 +15,7 @@ int main()
     }
     file.close();
     dating_portal::Menu dating_portal(main_list);
-    dating_portal.main_menu();
+    dating_portal.main_menu();                                  //uruchomienie g³ównego menu programu
     return 0;
 }
 
