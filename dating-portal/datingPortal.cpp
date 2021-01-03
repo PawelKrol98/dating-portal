@@ -181,7 +181,7 @@ void List_of_users::create_new_user()
 	std::getline(std::cin, str_hobby);
 	std::for_each(str_hobby.begin(), str_hobby.end(), [](char& c)          
 		{
-			c = ::tolower(c);               // changing to lowercase to make filtering easier
+			c = ::tolower(c);               // zmienianie na male litery
 		});
 	std::vector<std::string> hobby{};
 	str_hobby += " ";
@@ -197,7 +197,7 @@ void List_of_users::create_new_user()
 	file << std::to_string(last_id);
 	file.close();
 	std::ofstream file2;
-	file2.open(file_path, std::ios::app);      // ios::app to append file
+	file2.open(file_path, std::ios::app);      // ios::app to dopisywania do pliku
 	file2 << last_id << " " << password <<" " <<usr.to_string(true) << std::endl;
 	file2.close();
 	users.insert({ last_id, usr });
@@ -215,7 +215,7 @@ void List_of_users::delete_user(uint64_t user_id)
 	std::string line;
 	while (std::getline(file, line))
 	{
-		if (line + ' ' != user_to_delete)       // +' '     because line in txt is one space longer
+		if (line + ' ' != user_to_delete)       // +' '    poniewaz linia w txt jest dluzsza o jedna spacje
 		{
 			new_file << line << std::endl;
 		}
