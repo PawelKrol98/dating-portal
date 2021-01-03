@@ -1,6 +1,19 @@
 import random
 import string
+import os
+import glob
 
+files = glob.glob('friends/*')
+for f in files:
+    os.remove(f)
+files = glob.glob('chats/*')
+for f in files:
+    os.remove(f)
+try:
+    os.remove("users.txt")
+    os.remove("last_id.txt")
+except:
+    print("file is already removed")
 male_names = ["Andrzej", "Bartek", "Cezary" ,"Dawid", "Pawel", "Daniel", "Jakub", "Maciek", "Piotr", "Filip", "Rafal",
               "Krzysiek", "Jan", "Jacek", "Julian", "Damian", "Oskar", "Kacper", "Konrad", "Kornel", "Arek", "Darek",
               "Marek", "Michal", "Igor", "Lucjan", "Ludwik", "Maks", "Mikolaj", "Norbert", "Aleksander", "Olaf"]
@@ -15,7 +28,8 @@ genders = ["W", "M"]
 
 letters = string.ascii_lowercase
 
-file =open("users.txt", "w")
+file = open("users.txt", "w")
+last_id = 0
 for i in range(1, 10000):
     password = ''.join(random.choice(letters) for i in range(5))
     gender = random.choice(genders)
@@ -40,5 +54,8 @@ for i in range(1, 10000):
         hobby += (h + " ")
     user = str(i) + " " + password + " " +name + " " + gender + " " + str(age) + " " + orientation + " " + city + " hobby " + hobby + "\n"
     file.write(user)
-
+    last_id = i
+last_id_file = open("last_id.txt", "w")
+last_id_file.write(str(last_id))
+last_id_file.close()
 file.close()

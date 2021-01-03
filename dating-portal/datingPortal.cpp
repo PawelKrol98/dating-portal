@@ -374,6 +374,24 @@ Menu::Menu(List_of_users& _main_list)
 	main_list = _main_list;
 }
 
+void Menu::select_num()
+{
+	std::cin >> choice;
+	while (choice.empty() or !std::all_of(choice.begin(), choice.end(), ::isdigit))
+	{
+		std::cout << "type a number, not text" << std::endl;
+		std::cin >> choice;
+	}
+	try 
+	{
+		num = std::stoi(choice);
+	}
+	catch (std::exception& e) 
+	{
+		std::cout << e.what() << std::endl;
+	}
+}
+
 void Menu::main_menu()
 {
     while (true)
@@ -383,19 +401,18 @@ void Menu::main_menu()
         std::cout << "[1] log in" << std::endl;
         std::cout << "[2] create an account" << std::endl;
         std::cout << "[3] exit" << std::endl;
-        std::cin >> num;
+		select_num();
         switch (num)
         {
 		case 1: 
 		{
 			std::system("CLS");
-			std::string str_id;
 			std::string password;
 			std::cout << "Please enter your ID " << std::endl;
-			std::cin >> str_id;
+			select_num();
 			std::cout << "Please enter your password" << std::endl;
 			std::cin >> password;
-			if (main_list.get_user(std::stoi(str_id)).compare_passwords(password)) { user_menu(filter_for_user(main_list, main_list.get_user(std::stoi(str_id))), std::stoi(str_id)); }
+			if (main_list.get_user(num).compare_passwords(password)) { user_menu(filter_for_user(main_list, main_list.get_user(num)), num); }
 			else {
 				std::cout << "Incorrect password (type 'ok' to go back to main menu)" << std::endl;
 				std::cin >> choice;
@@ -427,7 +444,7 @@ void Menu::user_menu(List_of_users user_list, const uint64_t user_id)
 		std::cout << "[2] show chats" << std::endl;
 		std::cout << "[3] delete an account" << std::endl;
 		std::cout << "[4] logout" << std::endl;
-		std::cin >> num;
+		select_num();
 		switch (num)
 		{
 		case 1:
@@ -448,7 +465,7 @@ void Menu::user_menu(List_of_users user_list, const uint64_t user_id)
 			}
 			std::cout << "choose id to send message to ,type 'ok' to come back" << std::endl;
 			std::cin >> choice;
-			if (choice == "ok") break;
+			if (!std::all_of(choice.begin(), choice.end(), ::isdigit)) break;
 			user_list.send_messages(main_list, user_id, std::stoi(choice));
 			file.close();
 		}
@@ -494,12 +511,12 @@ void Menu::filtered_menu(List_of_users user_list, const uint64_t user_id)
 			print_cities += s + ' ';
 		}
 		std::cout << "Choosed filters: " << " hobbies: [" << print_hobby << "] cities: [" << print_cities
-			<< "] minimal age: [" << my_filter.min_age << "] minimal age: [" << my_filter.max_age << "]" << std::endl;
+			<< "] minimal age: [" << my_filter.min_age << "] maximal age: [" << my_filter.max_age << "]" << std::endl;
 		std::cout << "[1] show list of candidates" << std::endl;
 		std::cout << "[2] add filter" << std::endl;
 		std::cout << "[3] delete filters" << std::endl;
 		std::cout << "[4] exit" << std::endl;
-		std::cin >> num;
+		select_num();
 		switch (num)
 		{
 		case 1:
@@ -507,7 +524,7 @@ void Menu::filtered_menu(List_of_users user_list, const uint64_t user_id)
 			filter_list(user_list, my_filter).show_users();
 			std::cout << "choose id to send message to ,type 'ok' to come back" << std::endl;
 			std::cin >> choice;
-			if (choice == "ok") break;
+			if (!std::all_of(choice.begin(), choice.end(), ::isdigit)) break;
 			user_list.send_messages(main_list, user_id, std::stoi(choice));
 			break;
 		case 2:
@@ -517,9 +534,8 @@ void Menu::filtered_menu(List_of_users user_list, const uint64_t user_id)
 			std::cout << "[3] minimum age" << std::endl;
 			std::cout << "[4] maximum age" << std::endl;
 			std::cout << "[5] exit" << std::endl;
-			int num2;
-			std::cin >> num2;
-			switch (num2)
+			select_num();
+			switch (num)
 			{
 			case 1:
 			{
@@ -551,11 +567,23 @@ void Menu::filtered_menu(List_of_users user_list, const uint64_t user_id)
 			}
 			case 3:
 				std::cout << "Provide minimum age of candidate:" << std::endl;
-				std::cin >> my_filter.min_age;
+				select_num();
+				while (num < 18)
+				{
+					std::cout << "Age must be at least 18 " << std::endl;
+					select_num();
+				}
+				my_filter.min_age = num;
 				break;
 			case 4:
 				std::cout << "Provide maximum age of candidate" << std::endl;
-				std::cin >> my_filter.max_age;
+				select_num();
+				while (num < 18)
+				{
+					std::cout << "Age must be at least 18 " << std::endl;
+					select_num();
+				}
+				my_filter.max_age = num;
 				break;
 			case 5:
 				break;

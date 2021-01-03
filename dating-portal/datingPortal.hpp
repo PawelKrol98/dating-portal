@@ -77,9 +77,10 @@ private:
 class Menu
 {
 private:
-	int num;
-	std::string choice;
+	int num;      //buffer containting entered int
+	std::string choice;   //buffer containting entered string
 	List_of_users main_list;
+	void select_num();
 public:
 	Menu(List_of_users&);
 	void main_menu();
