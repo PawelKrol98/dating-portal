@@ -158,6 +158,11 @@ void List_of_users::create_new_user()
 	}
 	std::cout << "Please enter your age:" << std::endl;
 	std::cin >> str_age;
+	while (str_age.empty() or !std::all_of(str_age.begin(), str_age.end(), ::isdigit))
+	{
+		std::cout << "type a number, not text" << std::endl;
+		std::cin >> str_age;
+	}
 	if (std::stoi(str_age) < 18)
 	{
 		std::cout << "You must be at least 18 years old to make a profile, type anything to exit" << std::endl;
@@ -202,6 +207,9 @@ void List_of_users::create_new_user()
 	file2.close();
 	users.insert({ last_id, usr });
 	std::cout << "Your ID is " << last_id << std::endl;
+	std::cout << "Accout successfully created! You can sign in with your ID and password (type 'ok' to go back to main menu)" << std::endl;
+	std::string exit;
+	std::cin >> exit;
 }
 
 
@@ -422,8 +430,6 @@ void Menu::main_menu()
         case 2:
             std::system("CLS");
             main_list.create_new_user();
-			std::cout << "Accout successfully created! You can sign in with your ID and password (type 'ok' to go back to main menu)" << std::endl;
-			std::cin >> choice;
             break;
         case 3:
             return;
